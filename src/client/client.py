@@ -1,26 +1,24 @@
 
 import sys
 import pygame
-import random
-from typing import Tuple
 from multiprocessing import Process
 from PodSixNet.Connection import connection, ConnectionListener
 
-from src.commons.utils import Direction, Coordinates, RandomCoordinates
-from src.commons import Snake, Food
+from src.commons import Direction, Size, Location
+from src.client.entities import Snake, Food
 from src.client import Renderer
 
 
 class Client(ConnectionListener, Process):
 
-    def __init__(self, screen_size_x: int = 480, screen_size_y: int = 480,
+    def __init__(self, screen_width: int = 480, screen_height: int = 480,
                  ip: str = "127.0.0.1", port: int = 5071):
 
         Process.__init__(self)
         ConnectionListener.__init__(self)
 
         # Set the screen size
-        self.screen_size = Coordinates(screen_size_x, screen_size_y)
+        self.screen_size = Size(screen_width, screen_height)
 
         # Init the id and grid_size, defined later by the server
         self.id = None
@@ -47,24 +45,7 @@ class Client(ConnectionListener, Process):
 
             if self.is_connected:
                 self.handle_keys()
-                self.renderer.render(self.snakes.values(), self.foods.values())
-
-        """
-        while True:
-            self.renderer.clock.tick(5)
-
-            self.handle_keys()
-            self.snakes[self.id].move()
-            self.eat()
-
-            self.random_spawn_food()
-            self.renderer.render(self.snakes.values(), self.foods.values())
-        """
-
-
-    def eat(self):
-        if pos := self.snakes[self.id].is_eating_food(self.foods):
-            del self.foods[pos]
+                self.renderer.render(self.snakes.values(), self.foods)
 
     def handle_keys(self):
 
@@ -102,7 +83,7 @@ class Client(ConnectionListener, Process):
 
         # Save its own id and the game grid size
         self.id = message['id']
-        self.grid_size = Coordinates(
+        self.grid_size = Size(
             message['grid_size'][0],
             message['grid_size'][1]
         )
@@ -124,8 +105,7 @@ class Client(ConnectionListener, Process):
         for player in message:
 
             self.snakes[player['id']] = Snake(
-                Coordinates(player['location'][0], player['location'][1]),
-                self.grid_size
+                Location(player['location'][0], player['location'][1])
             )
 
     def Network_update_positions(self, data: dict):
@@ -135,8 +115,13 @@ class Client(ConnectionListener, Process):
 
         :param data: The data send by the server.
         """
-        message: list = data['message']
+        message: dict = data['message']
 
         # Set the positions of each snake
-        for player in message:
+        for player in message['players']:
             self.snakes[player['id']].set_positions(player['positions'])
+
+        # Reset and create a local copy of the given foods
+        self.foods = {}
+        for food in message['foods']:
+            self.foods[food] = Food()

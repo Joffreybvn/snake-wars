@@ -1,46 +1,13 @@
 
 import time
 import random
-from typing import Union, Dict, Iterable
+from typing import Dict, Iterable
 from multiprocessing import Process
 from PodSixNet.Server import Server as PodSixServer
-from PodSixNet.Channel import Channel
 
-from src.commons.utils import Coordinates, RandomCoordinates
-from src.commons import Snake, Food
-
-
-class Player(Channel):
-    """Player socket representation on the server."""
-
-    def __init__(self, *args, **kwargs):
-
-        # Create a random id
-        self.id = random.randint(0, 10000)
-        self.snake: Union[Snake, None] = None
-
-        super().__init__(*args, **kwargs)
-
-    def create_snake(self):
-        """Create a Snake at a random location in the game grid."""
-
-        # Create a random spawn location for the Snake
-        grid_size = self._server.grid_size
-        location = RandomCoordinates(grid_size.x, grid_size.y)
-
-        # Instantiate a new Snake
-        self.snake = Snake(location, grid_size)
-
-    # NETWORK related functions
-    # -------------------------------------------------------------------------
-
-    def Network(self, data):
-        pass
-
-    def Network_turn(self, data):
-        """Handle client's input (turn left, right, top, bottom)."""
-
-        self.snake.turn(data["message"])
+from src.commons import RandomLocation, Size
+from src.server.entities import Food
+from src.server import Player
 
 
 class Server(PodSixServer, Process):
@@ -48,24 +15,24 @@ class Server(PodSixServer, Process):
     channelClass = Player
 
     def __init__(self, ip: str = "127.0.0.1", port: int = 5071, slots: int = 1,
-                 grid_size_x: int = 20, grid_size_y: int = 20,
+                 grid_width: int = 20, grid_height: int = 20,
                  food_spawn_rate: float = 0.15):
 
         Process.__init__(self)
         PodSixServer.__init__(self, localaddr=(ip, port))
 
         # Server address
-        self.ip = ip
-        self.port = port
+        self.ip: str = ip
+        self.port: int = port
 
         # Players (snakes) and food
-        self.max_slots = slots
+        self.max_slots: int = slots
         self.players: Dict[int, Player] = {}
         self.foods = {}
 
         # Game constants
-        self.grid_size = Coordinates(grid_size_x, grid_size_y)
-        self.food_spawn_rate = food_spawn_rate
+        self.grid_size = Size(grid_width, grid_height)
+        self.food_spawn_rate: float = food_spawn_rate
 
         print(f"[Server] Starting complete > Listening to: {self.ip}:{self.port}")
 
@@ -80,7 +47,8 @@ class Server(PodSixServer, Process):
 
             if len(self.players) == self.max_slots:
                 self.__move_all()
-                # self.__random_spawn_food()
+                self.__eat_all()
+                self.__random_spawn_food()
 
                 # Send updates to players
                 self.update_positions()
@@ -90,6 +58,12 @@ class Server(PodSixServer, Process):
         for player in self.players.values():
             player.snake.move()
 
+    def __eat_all(self):
+        for player in self.players.values():
+
+            if pos := player.snake.is_eating_food(self.foods):
+                del self.foods[pos]
+
     def __random_spawn_food(self):
         """
         Randomly spawn a food (or not), at a random position.
@@ -98,9 +72,9 @@ class Server(PodSixServer, Process):
         # Boolean random based on probability:
         if random.random() < self.food_spawn_rate:
 
-            # Spawn a food at a random position
-            position = RandomCoordinates(self.grid_size.x, self.grid_size.y)
-            self.foods[position.tuple()] = Food(position)
+            # Spawn a food at a random location
+            location = RandomLocation(self.grid_size.width, self.grid_size.height)
+            self.foods[location.tuple()] = Food(location)
 
     # NETWORK related functions
     # -------------------------------------------------------------------------
@@ -154,14 +128,17 @@ class Server(PodSixServer, Process):
             }
 
     def update_positions(self):
-        """Send all positions of all Snakes to all players."""
+        """Send all positions of all Snakes and foods to all players."""
 
         # Get all player's snake positions
-        all_positions = list(self.get_all_players_positions())
+        all_players_positions = list(self.get_all_players_positions())
 
         # Send these positions to all players
         for player in self.players.values():
-            player.Send({"action": "update_positions", "message": all_positions})
+            player.Send({"action": "update_positions", "message": {
+                'players': all_players_positions,
+                'foods': list(self.foods.keys())
+            }})
 
     def get_all_players_positions(self) -> Iterable:
         """Return an Iterable of all player's positions."""

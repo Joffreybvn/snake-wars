@@ -1,3 +1,5 @@
 
-from src.commons.food import Food
-from src.commons.snake import Snake
+from src.commons.direction import Direction
+from src.commons.location import Location
+from src.commons.random_location import RandomLocation
+from src.commons.size import Size

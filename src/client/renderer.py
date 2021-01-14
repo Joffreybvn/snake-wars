@@ -1,14 +1,14 @@
 
 import pygame
-from typing import List
-from src.commons import Snake, Food
-from src.commons.utils import Coordinates
+from typing import List, Dict
+from src.client.entities import Snake, Food
+from src.commons import Size
 
 
 class Renderer:
     """PyGame renderer."""
 
-    def __init__(self, screen_size: Coordinates, grid_size: Coordinates):
+    def __init__(self, screen_size: Size, grid_size: Size):
 
         # Store the screen size, game grid size, and math the size of a cell
         self.screen_size = screen_size
@@ -28,18 +28,18 @@ class Renderer:
     def start(self):
         self.__draw_grid()
 
-    def __math_cell_size(self) -> Coordinates:
+    def __math_cell_size(self) -> Size:
         """
         Math and return the size of a cell from the size of the
         window and the size of the grid.
         """
 
-        return Coordinates(
-            self.screen_size.x // self.grid_size.x,
-            self.screen_size.y // self.grid_size.y
+        return Size(
+            self.screen_size.width // self.grid_size.width,
+            self.screen_size.height // self.grid_size.height
         )
 
-    def render(self, snakes: List[Snake], foods: List[Food]):
+    def render(self, snakes: List[Snake], foods: Dict[tuple, Food]):
         self.__draw_grid()
         self.__draw_foods(foods)
         self.__draw_snakes(snakes)
@@ -50,15 +50,15 @@ class Renderer:
 
     def __draw_grid(self):
 
-        for y in range(0, self.grid_size.y):
-            for x in range(0, self.grid_size.x):
+        for h in range(0, self.grid_size.height):
+            for w in range(0, self.grid_size.width):
 
                 rect = pygame.Rect(
-                    (x * self.cell_size.x, y * self.cell_size.y),
-                    (self.screen_size.x, self.screen_size.y)
+                    (w * self.cell_size.width, h * self.cell_size.height),
+                    (self.screen_size.width, self.screen_size.height)
                 )
 
-                if (x + y) % 2 == 0:
+                if (w + h) % 2 == 0:
                     pygame.draw.rect(self.surface, (93, 216, 228), rect)
                 else:
                     pygame.draw.rect(self.surface, (84, 194, 205), rect)
@@ -66,27 +66,27 @@ class Renderer:
     def __draw_snakes(self, snakes: List[Snake]):
 
         for snake in snakes:
-            for pos in snake.positions:
+            for loc in snake.positions:
 
                 rect = pygame.Rect(
-                    pos.x * self.cell_size.x,
-                    pos.y * self.cell_size.y,
-                    self.cell_size.x,
-                    self.cell_size.y
+                    loc.x * self.cell_size.width,
+                    loc.y * self.cell_size.height,
+                    self.cell_size.width,
+                    self.cell_size.height
                 )
 
                 pygame.draw.rect(self.surface, snake.color, rect)
                 pygame.draw.rect(self.surface, (93, 216, 228), rect, 1)
 
-    def __draw_foods(self, foods: List[Food]):
+    def __draw_foods(self, foods: Dict[tuple, Food]):
 
-        for food in foods:
+        for location, food in foods.items():
 
             rect = pygame.Rect(
-                food.position.x * self.cell_size.x,
-                food.position.y * self.cell_size.y,
-                self.cell_size.x,
-                self.cell_size.y
+                location[0] * self.cell_size.width,
+                location[1] * self.cell_size.height,
+                self.cell_size.width,
+                self.cell_size.height
             )
 
             pygame.draw.rect(self.surface, food.color, rect)

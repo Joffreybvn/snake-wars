@@ -1,24 +1,9 @@
 
 import random
+from src.commons import Location
 
 
-class Coordinates:
-    """
-    A simple 2D-coordinates class. Useful to store a position,
-    or the size of a 2D grid.
-    """
-
-    def __init__(self, x: int = 0, y: int = 0):
-        self.x = x
-        self.y = y
-
-    def tuple(self) -> tuple:
-        """Return a tuple of coordinates."""
-
-        return self.x, self.y
-
-
-class RandomCoordinates(Coordinates):
+class RandomLocation(Location):
     """
     A custom Coordinates class to instantiate automatically random
     coordinates from a given range.
