@@ -1,6 +1,6 @@
 
 import random
-from src.commons import Location
+from snake_wars.commons import Location
 
 
 class RandomLocation(Location):

@@ -4,9 +4,9 @@ import pygame
 from multiprocessing import Process
 from PodSixNet.Connection import connection, ConnectionListener
 
-from src.commons import Direction, Size, Location
-from src.client.entities import Snake, Food
-from src.client import Renderer
+from snake_wars.commons import Direction, Size, Location
+from snake_wars.client.entities import Snake, Food
+from snake_wars.client import Renderer
 
 
 class Client(ConnectionListener, Process):

@@ -1,7 +1,7 @@
 
 import random
 from typing import Iterable, List
-from src.commons import Direction, Location, Size
+from snake_wars.commons import Direction, Location, Size
 
 
 class Snake:

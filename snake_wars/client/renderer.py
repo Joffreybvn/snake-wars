@@ -1,8 +1,8 @@
 
 import pygame
 from typing import List, Dict
-from src.client.entities import Snake, Food
-from src.commons import Size
+from snake_wars.client.entities import Snake, Food
+from snake_wars.commons import Size
 
 
 class Renderer:

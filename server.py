@@ -2,7 +2,7 @@
 # SERVER start script - Remote use only
 
 from os import environ
-from src.server import Server
+from snake_wars.server import Server
 
 
 # Port and server slots

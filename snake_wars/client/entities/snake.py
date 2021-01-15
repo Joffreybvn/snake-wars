@@ -1,6 +1,6 @@
 
 from typing import Iterable
-from src.commons import Location
+from snake_wars.commons import Location
 
 
 class Snake:

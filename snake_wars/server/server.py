@@ -6,9 +6,9 @@ from multiprocessing import Process
 from iteration_utilities import duplicates
 from PodSixNet.Server import Server as PodSixServer
 
-from src.commons import RandomLocation, Size
-from src.server.entities import Food
-from src.server import Player
+from snake_wars.commons import RandomLocation, Size
+from snake_wars.server.entities import Food
+from snake_wars.server import Player
 
 
 class Server(PodSixServer, Process):

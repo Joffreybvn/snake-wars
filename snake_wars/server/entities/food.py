@@ -1,5 +1,5 @@
 
-from src.commons import Location
+from snake_wars.commons import Location
 
 
 class Food:

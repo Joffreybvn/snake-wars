@@ -3,8 +3,8 @@ import random
 from typing import Union
 from PodSixNet.Channel import Channel
 
-from src.server.entities import Snake
-from src.commons import RandomLocation, Size
+from snake_wars.server.entities import Snake
+from snake_wars.commons import RandomLocation, Size
 
 
 class Player(Channel):
