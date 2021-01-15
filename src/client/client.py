@@ -38,6 +38,7 @@ class Client(ConnectionListener, Process):
         self.loop()
 
     def loop(self):
+        """Client loop. Refresh the game from the server."""
 
         while True:
             connection.Pump()
@@ -48,12 +49,12 @@ class Client(ConnectionListener, Process):
                 self.renderer.render(self.snakes.values(), self.foods)
 
     def handle_keys(self):
+        """Handle the client key press."""
 
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                self.quit()
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
@@ -67,6 +68,13 @@ class Client(ConnectionListener, Process):
 
                 elif event.key == pygame.K_RIGHT:
                     connection.Send({"action": "turn", "message": Direction.RIGHT.value})
+
+    @staticmethod
+    def quit():
+        """Close the Client."""
+
+        pygame.quit()
+        sys.exit()
 
     # NETWORK related functions
     # -------------------------------------------------------------------------
@@ -117,11 +125,26 @@ class Client(ConnectionListener, Process):
         """
         message: dict = data['message']
 
-        # Set the positions of each snake
+        # Reset and create a local copy of each snake
+        self.snakes = {}
         for player in message['players']:
-            self.snakes[player['id']].set_positions(player['positions'])
+
+            snake = Snake()
+            snake.set_positions(player['positions'])
+
+            self.snakes[player['id']] = snake
 
         # Reset and create a local copy of the given foods
         self.foods = {}
         for food in message['foods']:
             self.foods[food] = Food()
+
+    def Network_game_over(self, data: dict):
+        """
+        Function triggered when the server send a game over.
+        Close the game client.
+
+        :param data: The data send by the server.
+        """
+
+        self.quit()

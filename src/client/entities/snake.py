@@ -5,7 +5,7 @@ from src.commons import Location
 
 class Snake:
 
-    def __init__(self, start_location: Location):
+    def __init__(self, start_location: Location = None):
 
         self.positions = [start_location]
         self.color = (17, 24, 47)

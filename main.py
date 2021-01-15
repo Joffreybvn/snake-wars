@@ -3,7 +3,7 @@ import time
 from src.server import Server
 from src.client import Client
 
-server = Server(slots=2)
+server = Server(slots=2, food_spawn_rate=0.5)
 # client = Client(580, 580)
 
 if __name__ == '__main__':

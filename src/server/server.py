@@ -1,4 +1,5 @@
 
+import sys
 import time
 import random
 from typing import Dict, Iterable
@@ -25,8 +26,10 @@ class Server(PodSixServer, Process):
         self.ip: str = ip
         self.port: int = port
 
-        # Players (snakes) and food
+        # Server state
         self.max_slots: int = slots
+
+        # Players (snakes) and food
         self.players: Dict[int, Player] = {}
         self.foods = {}
 
@@ -37,32 +40,65 @@ class Server(PodSixServer, Process):
         print(f"[Server] Starting complete > Listening to: {self.ip}:{self.port}")
 
     def run(self):
-        self.loop()
+        self.lobby_loop()
+        self.game_loop()
 
-    def loop(self):
+    def lobby_loop(self):
+        """Lobby loop: Run while waiting for all players to connect."""
+
+        while True:
+            self.Pump()
+
+            if len(self.players) == self.max_slots:
+                break
+
+    def game_loop(self):
+        """
+        Game loop: Refresh and update the game state. Send the
+        result to all clients.
+        """
 
         while True:
             time.sleep(0.5)
             self.Pump()
 
-            if len(self.players) == self.max_slots:
-                self.__move_all()
-                self.__eat_all()
-                self.__random_spawn_food()
+            # Refresh player states
+            self.__move_all()
+            self.__eat_all()
+            self.__are_death()
+            self.__random_spawn_food()
 
-                # Send updates to players
-                self.update_positions()
-                self.Pump()
+            # Send updates to players
+            self.update_positions()
+            self.Pump()
+
+            # Close the server if all players disconnected
+            if len(self.players) == 0:
+                sys.exit()
 
     def __move_all(self):
+        occupied_positions = []
+
         for player in self.players.values():
-            player.snake.move()
+            positions = player.move(occupied_positions)
+
+            # Add the positions of this snake to the occupied positions list
+            occupied_positions += positions
 
     def __eat_all(self):
         for player in self.players.values():
 
             if pos := player.snake.is_eating_food(self.foods):
                 del self.foods[pos]
+
+    def __are_death(self):
+
+        players = {**self.players}  # Create a shallow copy
+        for player_id, player in players.items():
+
+            if player.snake.death:
+                self.disconnect(player)
+                del self.players[player_id]
 
     def __random_spawn_food(self):
         """
@@ -149,3 +185,12 @@ class Server(PodSixServer, Process):
                 'id': player_id,
                 'positions': list(player.snake.get_all_raw_positions())
             }
+
+    @staticmethod
+    def disconnect(player: Player):
+        """
+        Send a Game Over to a death player. The player should
+        disconnect once he receive this message.
+        """
+
+        player.Send({"action": "game_over"})

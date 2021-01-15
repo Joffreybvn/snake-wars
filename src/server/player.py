@@ -28,6 +28,19 @@ class Player(Channel):
         # Instantiate a new Snake
         self.snake = Snake(location, grid_size)
 
+    def move(self, occupied_positions: list):
+        """Move its Snake and return its positions."""
+
+        # Move the snake
+        self.snake.move(occupied_positions)
+
+        # If the snake is still alive, return its positions
+        if not self.snake.death:
+            return list(self.snake.get_all_raw_positions())
+
+        # If not, return an empty list
+        return []
+
     # NETWORK related functions
     # -------------------------------------------------------------------------
 

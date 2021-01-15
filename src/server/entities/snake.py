@@ -18,6 +18,7 @@ class Snake:
         # Init the length and score values
         self.length = 1
         self.score = 0
+        self.death = False
 
     def get_head_position(self) -> Location:
         """Return the location of the Snake's head."""
@@ -39,7 +40,8 @@ class Snake:
         # Else, set the new direction
         self.direction = direction
 
-    def move(self):
+    def move(self, occupied_positions: list):
+
         current_loc = self.get_head_position()
         x, y = self.direction
 
@@ -50,29 +52,29 @@ class Snake:
             (current_loc.y + y) % self.grid_size.height
         )
 
-        # If the snake eat itself, reset
-        #if len(self.positions) > 2 and new_pos in self.positions[2:]:
-        #    self.reset()
+        # If the snake eat itself, die
+        if len(self.positions) > 2 and \
+                new_loc.tuple() in list(self.get_all_raw_positions())[2:]:
 
-        #else:
-        self.positions.insert(0, new_loc)
+            self.death = True
 
-        if len(self.positions) > self.length:
-            self.positions.pop()
+        # If the snake touch another snake, die
+        if new_loc.tuple() in occupied_positions:
+            self.death = True
+
+        # Else, move once cell ahead
+        else:
+            self.positions.insert(0, new_loc)
+
+            if len(self.positions) > self.length:
+                self.positions.pop()
 
     def is_eating_food(self, foods: dict):
         current_pos = self.get_head_position().tuple()
 
         for pos in foods.keys():
             if current_pos == pos:
-
                 self.length += 1
                 self.score += 1
 
                 return pos
-
-    # def reset(self):
-    #    self.length = 1
-    #    self.positions = [((screen_width/2), (screen_height/2))]
-    #    self.direction = random.choice(Direction.list())
-    #    self.score = 0
