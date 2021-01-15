@@ -27,7 +27,6 @@ Client(580, 580).start()
 Play with your friends on a remote server
 
 ```Python
-from snake_wars.server import Server
 from snake_wars.client import Client
 
 # Replace the ip with the ip of your server

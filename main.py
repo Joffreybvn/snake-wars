@@ -19,5 +19,5 @@ def start_online():
 
 if __name__ == '__main__':
 
-    # start_solo()
-    start_online()
+    start_solo()
+    # start_online()
