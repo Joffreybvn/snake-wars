@@ -28,11 +28,11 @@ class Player(Channel):
         # Instantiate a new Snake
         self.snake = Snake(location, grid_size)
 
-    def move(self, occupied_positions: list):
+    def move(self):
         """Move its Snake and return its positions."""
 
         # Move the snake
-        self.snake.move(occupied_positions)
+        self.snake.move()
 
         # If the snake is still alive, return its positions
         if not self.snake.death:

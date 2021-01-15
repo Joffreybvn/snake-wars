@@ -40,7 +40,7 @@ class Snake:
         # Else, set the new direction
         self.direction = direction
 
-    def move(self, occupied_positions: list):
+    def move(self):
 
         current_loc = self.get_head_position()
         x, y = self.direction
@@ -56,10 +56,6 @@ class Snake:
         if len(self.positions) > 2 and \
                 new_loc.tuple() in list(self.get_all_raw_positions())[2:]:
 
-            self.death = True
-
-        # If the snake touch another snake, die
-        if new_loc.tuple() in occupied_positions:
             self.death = True
 
         # Else, move once cell ahead

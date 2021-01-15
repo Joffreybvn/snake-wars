@@ -1,9 +1,9 @@
 
-import sys
 import time
 import random
 from typing import Dict, Iterable
 from multiprocessing import Process
+from iteration_utilities import duplicates
 from PodSixNet.Server import Server as PodSixServer
 
 from src.commons import RandomLocation, Size
@@ -32,6 +32,7 @@ class Server(PodSixServer, Process):
         # Players (snakes) and food
         self.players: Dict[int, Player] = {}
         self.foods = {}
+        self.occupied_positions = []
 
         # Game constants
         self.grid_size = Size(grid_width, grid_height)
@@ -40,8 +41,10 @@ class Server(PodSixServer, Process):
         print(f"[Server] Starting complete > Listening to: {self.ip}:{self.port}")
 
     def run(self):
-        self.lobby_loop()
-        self.game_loop()
+
+        while True:
+            self.lobby_loop()
+            self.game_loop()
 
     def lobby_loop(self):
         """Lobby loop: Run while waiting for all players to connect."""
@@ -72,24 +75,31 @@ class Server(PodSixServer, Process):
             self.update_positions()
             self.Pump()
 
-            # Close the server if all players disconnected
+            # Close game if all players disconnected
             if len(self.players) == 0:
-                sys.exit()
+                break
 
     def __move_all(self):
-        occupied_positions = []
+        self.occupied_positions = []
 
+        # Move all players, get their positions
         for player in self.players.values():
-            positions = player.move(occupied_positions)
+            self.occupied_positions += player.move()
 
-            # Add the positions of this snake to the occupied positions list
-            occupied_positions += positions
+        # Remove the Snake that overlap another
+        for pos in duplicates(self.occupied_positions):
+            for player in self.players.values():
+
+                if pos == player.snake.get_head_position().tuple():
+                    player.snake.death = True
 
     def __eat_all(self):
         for player in self.players.values():
 
-            if pos := player.snake.is_eating_food(self.foods):
-                del self.foods[pos]
+            if not player.snake.death:
+                if pos := player.snake.is_eating_food(self.foods):
+
+                    del self.foods[pos]
 
     def __are_death(self):
 
