@@ -75,7 +75,7 @@ class Server(PodSixServer, Process):
             self.update_positions()
             self.Pump()
 
-            # Close game if all players disconnected
+            # Close this game loop if all players disconnected
             if len(self.players) == 0:
                 break
 
@@ -107,8 +107,7 @@ class Server(PodSixServer, Process):
         for player_id, player in players.items():
 
             if player.snake.death:
-                self.disconnect(player)
-                del self.players[player_id]
+                self.disconnect_player(player, player_id)
 
     def __random_spawn_food(self):
         """
@@ -196,11 +195,11 @@ class Server(PodSixServer, Process):
                 'positions': list(player.snake.get_all_raw_positions())
             }
 
-    @staticmethod
-    def disconnect(player: Player):
+    def disconnect_player(self, player, player_id):
         """
-        Send a Game Over to a death player. The player should
+        Send a disconnect message. The player's client should
         disconnect once he receive this message.
         """
 
-        player.Send({"action": "game_over"})
+        player.Send({"action": "disconnect"})
+        del self.players[player_id]

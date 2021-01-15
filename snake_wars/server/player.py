@@ -48,6 +48,18 @@ class Player(Channel):
         pass
 
     def Network_turn(self, data):
-        """Handle client's input (turn left, right, top, bottom)."""
+        """
+        Triggered when the client send its direction inputs.
+        (turn left, right, top, bottom).
+        """
 
         self.snake.turn(data["message"])
+
+    def Network_disconnect(self, data):
+        """
+        Triggered when the client disconnect.
+        """
+
+        # Remove the client from the server
+        self._server.disconnect_player(self, self.id)
+

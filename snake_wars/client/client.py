@@ -53,9 +53,13 @@ class Client(ConnectionListener, Process):
 
         for event in pygame.event.get():
 
+            # If the player close the game
             if event.type == pygame.QUIT:
-                self.quit()
 
+                # Request a smooth disconnection to the server
+                connection.Send({"action": "disconnect"})
+
+            # If the player press a direction button, send the direction to the server
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     connection.Send({"action": "turn", "message": Direction.UP.value})
@@ -139,12 +143,10 @@ class Client(ConnectionListener, Process):
         for food in message['foods']:
             self.foods[food] = Food()
 
-    def Network_game_over(self, data: dict):
+    def Network_disconnect(self, data: dict):
         """
-        Function triggered when the server send a game over.
-        Close the game client.
-
-        :param data: The data send by the server.
+        Function triggered when the server send a game over, or
+        after the client requested to disconnect. Close the game client.
         """
 
         self.quit()
