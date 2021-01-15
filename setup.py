@@ -16,7 +16,7 @@ with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
 # This call to setup() does all the work
 setup(
     name="snake-wars",
-    version="0.1.0",
+    version="0.1.1",
     description="Snake game implementation for multiplayer and reinforcement learning",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -38,7 +38,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Operating System :: POSIX :: Linux"
     ],
-    packages=["snake-wars"],
+    packages=find_packages(),
     include_package_data=True,
     install_requires=["pygame", "PodSixNet", "iteration-utilities"]
 )

@@ -14,10 +14,10 @@ def start_online():
     Online starting script. Change the IP and port to connect
     to your desired server.
     """
-    Client(580, 580, ip='127.0.0.1', port=5071).start()
+    Client(580, 580, ip='116.203.85.179', port=5081).start()
 
 
 if __name__ == '__main__':
 
-    start_solo()
-    # start_online()
+    # start_solo()
+    start_online()
