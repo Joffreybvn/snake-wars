@@ -1,6 +1,6 @@
 
-from src.server import Server
-from src.client import Client
+from snake_wars.server import Server
+from snake_wars.client import Client
 
 
 def start_solo():
@@ -14,7 +14,7 @@ def start_online():
     Online starting script. Change the IP and port to connect
     to your desired server.
     """
-    Client(580, 580, ip='127.0.0.1', port=5071)
+    Client(580, 580, ip='127.0.0.1', port=5071).start()
 
 
 if __name__ == '__main__':
