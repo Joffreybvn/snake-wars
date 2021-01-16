@@ -15,9 +15,10 @@ class Server(PodSixServer, Process):
 
     channelClass = Player
 
-    def __init__(self, ip: str = "127.0.0.1", port: int = 5071, slots: int = 1,
+    def __init__(self, ip: str = "127.0.0.1", port: int = 5071,
+                 slots: int = 1,
                  grid_width: int = 20, grid_height: int = 20,
-                 food_spawn_rate: float = 0.15):
+                 game_rate: int = 2, food_spawn_rate: float = 0.15):
 
         Process.__init__(self)
         PodSixServer.__init__(self, localaddr=(ip, port))
@@ -31,11 +32,13 @@ class Server(PodSixServer, Process):
 
         # Players (snakes) and food
         self.players: Dict[int, Player] = {}
-        self.foods = {}
         self.occupied_positions = []
+        self.foods = {}
 
         # Game constants
+        self.step = 0
         self.grid_size = Size(grid_width, grid_height)
+        self.game_rate = game_rate
         self.food_spawn_rate: float = food_spawn_rate
 
         print(f"[Server] Starting complete > Listening to: {self.ip}:{self.port}")
@@ -52,7 +55,8 @@ class Server(PodSixServer, Process):
         while True:
             self.Pump()
 
-            if len(self.players) == self.max_slots:
+            if len(self.players) == self.max_slots \
+                    and self._check_player_connected():
                 break
 
     def game_loop(self):
@@ -62,14 +66,14 @@ class Server(PodSixServer, Process):
         """
 
         while True:
-            time.sleep(0.5)
+            time.sleep(1 / self.game_rate)
             self.Pump()
 
             # Refresh player states
-            self.__move_all()
-            self.__eat_all()
-            self.__are_death()
-            self.__random_spawn_food()
+            self._move_all()
+            self._eat_all()
+            self._are_death()
+            self._random_spawn_food()
 
             # Send updates to players
             self.update_positions()
@@ -79,7 +83,7 @@ class Server(PodSixServer, Process):
             if len(self.players) == 0:
                 break
 
-    def __move_all(self):
+    def _move_all(self):
         self.occupied_positions = []
 
         # Move all players, get their positions
@@ -93,7 +97,7 @@ class Server(PodSixServer, Process):
                 if pos == player.snake.get_head_position().tuple():
                     player.snake.death = True
 
-    def __eat_all(self):
+    def _eat_all(self):
         for player in self.players.values():
 
             if not player.snake.death:
@@ -101,7 +105,7 @@ class Server(PodSixServer, Process):
 
                     del self.foods[pos]
 
-    def __are_death(self):
+    def _are_death(self):
 
         players = {**self.players}  # Create a shallow copy
         for player_id, player in players.items():
@@ -109,7 +113,7 @@ class Server(PodSixServer, Process):
             if player.snake.death:
                 self.disconnect_player(player, player_id)
 
-    def __random_spawn_food(self):
+    def _random_spawn_food(self):
         """
         Randomly spawn a food (or not), at a random position.
         """
@@ -120,6 +124,15 @@ class Server(PodSixServer, Process):
             # Spawn a food at a random location
             location = RandomLocation(self.grid_size.width, self.grid_size.height)
             self.foods[location.tuple()] = Food(location)
+
+    def _check_player_connected(self):
+
+        for player in self.players.values():
+
+            if not player.connected:
+                return False
+
+        return True
 
     # NETWORK related functions
     # -------------------------------------------------------------------------
@@ -180,7 +193,9 @@ class Server(PodSixServer, Process):
 
         # Send these positions to all players
         for player in self.players.values():
-            player.Send({"action": "update_positions", "message": {
+
+            player.Send({"action": "game_state", "message": {
+                'step': self.step,
                 'players': all_players_positions,
                 'foods': list(self.foods.keys())
             }})

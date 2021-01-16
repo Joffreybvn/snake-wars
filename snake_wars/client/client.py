@@ -20,6 +20,9 @@ class Client(ConnectionListener, Process):
         # Set the screen size
         self.screen_size = Size(screen_width, screen_height)
 
+        # Synchronization parameter
+        self.step = 0
+
         # Init the id and grid_size, defined later by the server
         self.id = None
         self.grid_size = None
@@ -35,43 +38,58 @@ class Client(ConnectionListener, Process):
         print(f"[Client] Starting complete > Connected to: {ip}:{port}")
 
     def run(self):
-        self.loop()
 
-    def loop(self):
-        """Client loop. Refresh the game from the server."""
+        while not self.lobby_loop():
+            pass
 
         while True:
-            connection.Pump()
-            self.Pump()
+            self.game_loop()
 
-            if self.is_connected:
-                self.handle_keys()
-                self.renderer.render(self.snakes.values(), self.foods)
+    def lobby_loop(self):
+        self.pump()
+
+        if self.is_connected:
+            return True
+
+        return False
+
+    def game_loop(self, *args, **kwargs):
+        """Client loop. Refresh the game from the server."""
+
+        self.pump()
+
+        if self.is_connected:
+            self.handle_keys()
+            self.renderer.render(self.snakes.values(), self.foods)
 
     def handle_keys(self):
         """Handle the client key press."""
 
         for event in pygame.event.get():
 
-            # If the player close the game
+            # If the player close the game, request a smooth disconnection
             if event.type == pygame.QUIT:
-
-                # Request a smooth disconnection to the server
                 connection.Send({"action": "disconnect"})
 
             # If the player press a direction button, send the direction to the server
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    connection.Send({"action": "turn", "message": Direction.UP.value})
+                    self.send_state(Direction.UP)
 
                 elif event.key == pygame.K_DOWN:
-                    connection.Send({"action": "turn", "message": Direction.DOWN.value})
+                    self.send_state(Direction.DOWN)
 
                 elif event.key == pygame.K_LEFT:
-                    connection.Send({"action": "turn", "message": Direction.LEFT.value})
+                    self.send_state(Direction.LEFT)
 
                 elif event.key == pygame.K_RIGHT:
-                    connection.Send({"action": "turn", "message": Direction.RIGHT.value})
+                    self.send_state(Direction.RIGHT)
+
+    def pump(self):
+        """Refresh the connection with the server."""
+
+        connection.Pump()
+        self.Pump()
 
     @staticmethod
     def quit():
@@ -120,7 +138,7 @@ class Client(ConnectionListener, Process):
                 Location(player['location'][0], player['location'][1])
             )
 
-    def Network_update_positions(self, data: dict):
+    def Network_game_state(self, data: dict):
         """
         Function triggered when the server send the positions of all
         Snakes in the game.
@@ -128,6 +146,9 @@ class Client(ConnectionListener, Process):
         :param data: The data send by the server.
         """
         message: dict = data['message']
+
+        # Set the game step
+        self.step = message['step']
 
         # Reset and create a local copy of each snake
         self.snakes = {}
@@ -150,3 +171,11 @@ class Client(ConnectionListener, Process):
         """
 
         self.quit()
+
+    def send_state(self, direction: Direction):
+        """Send the direction of the client for this step."""
+
+        connection.Send({"action": "state", "message": {
+            'direction': direction.value,
+            'step': self.step
+        }})

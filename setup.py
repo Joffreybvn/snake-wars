@@ -16,7 +16,7 @@ with open(path.join(HERE, 'README.md'), encoding='utf-8') as f:
 # This call to setup() does all the work
 setup(
     name="snake-wars",
-    version="0.1.1",
+    version="0.3.0",
     description="Snake game implementation for multiplayer and reinforcement learning",
     long_description=long_description,
     long_description_content_type="text/markdown",

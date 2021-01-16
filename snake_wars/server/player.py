@@ -16,6 +16,9 @@ class Player(Channel):
         self.id = random.randint(0, 10000)
         self.snake: Union[Snake, None] = None
 
+        # The client step - Used to check synchronization
+        self.step = 0
+
         super().__init__(*args, **kwargs)
 
     def create_snake(self):
@@ -47,13 +50,21 @@ class Player(Channel):
     def Network(self, data):
         pass
 
-    def Network_turn(self, data):
+    def Network_state(self, data):
         """
         Triggered when the client send its direction inputs.
         (turn left, right, top, bottom).
         """
+        message = data['message']
 
-        self.snake.turn(data["message"])
+        self.snake.turn(message["direction"])
+        self.step = message['step']
+
+    def Network_step(self, data):
+        """
+        Triggered when the client send its step.
+        """
+        self.step = data['message']
 
     def Network_disconnect(self, data):
         """
