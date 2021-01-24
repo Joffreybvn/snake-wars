@@ -1,2 +1,2 @@
 
-from snake_wars.learn.reinforcement import Reinforcement
+from snake_wars.learn.agent import Agent

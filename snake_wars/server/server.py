@@ -160,6 +160,7 @@ class Server(PodSixServer, Process):
 
             player.Send({"action": "add_players", "message": [{
                 'id': new_player.id,
+                'direction': player.snake.direction,
                 'location': new_player.snake.get_head_position().tuple(),
             }]})
 
@@ -182,6 +183,7 @@ class Server(PodSixServer, Process):
 
             yield {
                 'id': player_id,
+                'direction': player.snake.direction,
                 'location': player.snake.get_head_position().tuple()
             }
 
@@ -207,6 +209,7 @@ class Server(PodSixServer, Process):
 
             yield {
                 'id': player_id,
+                'direction': player.snake.direction,
                 'positions': list(player.snake.get_all_raw_positions())
             }
 

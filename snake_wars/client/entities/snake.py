@@ -5,9 +5,10 @@ from snake_wars.commons import Location
 
 class Snake:
 
-    def __init__(self, start_location: Location = None):
+    def __init__(self, direction: tuple, start_location: Location = None):
 
         self.positions = [start_location]
+        self.direction: tuple = direction
         self.color = (17, 24, 47)
 
     def set_positions(self, positions: list):
@@ -23,3 +24,13 @@ class Snake:
 
         self.positions = list(generate_positions())
 
+    def get_head_position(self) -> Location:
+        """Return the location of the Snake's head."""
+
+        return self.positions[0]
+
+    def get_all_raw_positions(self) -> Iterable[tuple]:
+        """Return an Iterable of all positions as tuples."""
+
+        for position in self.positions:
+            yield position.tuple()

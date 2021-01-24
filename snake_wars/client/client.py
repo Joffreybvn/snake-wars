@@ -53,14 +53,14 @@ class Client(ConnectionListener, Process):
 
         return False
 
-    def game_loop(self, *args, **kwargs):
+    def game_loop(self):
         """Client loop. Refresh the game from the server."""
 
         self.pump()
+        self.renderer.render(self.snakes.values(), self.foods)
 
-        if self.is_connected:
-            self.handle_keys()
-            self.renderer.render(self.snakes.values(), self.foods)
+        self.handle_keys()
+        self.pump()
 
     def handle_keys(self):
         """Handle the client key press."""
@@ -135,6 +135,7 @@ class Client(ConnectionListener, Process):
         for player in message:
 
             self.snakes[player['id']] = Snake(
+                player['direction'],
                 Location(player['location'][0], player['location'][1])
             )
 
@@ -154,7 +155,7 @@ class Client(ConnectionListener, Process):
         self.snakes = {}
         for player in message['players']:
 
-            snake = Snake()
+            snake = Snake(player['direction'])
             snake.set_positions(player['positions'])
 
             self.snakes[player['id']] = snake
